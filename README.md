@@ -2,7 +2,7 @@ Jsmol notebook extension
 ========================
 
 This repository contains a Jupyter extension to visualize crystalline structures and molecules
-in the Jupyter notebook with Jsmol (the javascript version of of [Jmol](http://www.jmol.org/)).
+in the Jupyter notebook with Jsmol (the javascript version of [Jmol](http://www.jmol.org/)).
 
 Installation
 ============

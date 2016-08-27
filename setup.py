@@ -11,5 +11,5 @@ setup(
     packages=['nbjsmol'],
     # ... more setup.py stuff here ...
     install_requires=["jupyter-pip"],
-    cmdclass=cmdclass('nbjsmol', 'nbjsmol/init'),
+    cmdclass=cmdclass('nbjsmol', 'nbjsmol/main'),
 )
