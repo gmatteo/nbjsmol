@@ -32,7 +32,7 @@ def display_structure(structure):
     #//<script type="text/javascript" src="JSmol.min.nojq.js"></script>
     javascript = """
 <script type="text/javascript" src="jquery/jquery.min.js"></script>
-<script type="text/javascript" src="jsmol/JSmol.min.nojq.js"></script>
+<script type="text/javascript" src="nbjsmol/jsmol/JSmol.min.nojq.js"></script>
 
 <script type="text/javascript">
 //$(window).ready(function() {
@@ -45,7 +45,7 @@ $("#%(jmolapp_id)s").ready(function() {
         height: 500,
         color: "black",
         //addSelectionOptions: true,
-        serverURL: "jsmol/php/jsmol.php",
+        serverURL: "mbjsmol/jsmol/php/jsmol.php",
         script: "load %(cif_file)s;",
         //src: "%(cif_file)s",
         use: "HTML5",
