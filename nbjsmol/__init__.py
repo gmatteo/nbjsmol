@@ -1,81 +1,94 @@
-_jmolapp_nums = []
+# coding: utf-8
+from __future__ import division, unicode_literals, print_function, absolute_import
 
-def display_structure(structure):
-    global _jmolapp_nums
-    if not _jmolapp_nums:
-        _jmolapp_nums.append(1)
-    else:
-        _jmolapp_nums.append(_jmolapp_nums[-1] + 1)
+import os
+import tempfile
+import uuid
 
-    # Get the structure and write tempoary cif file.
-    structure = Structure.as_structure(structure)
-    import os, tempfile
+from shutil import copyfile
+
+def _get_tmpfile(ext, text=True):
     datadir = os.path.join(os.getcwd(), "ipynb_jsmoldata")
     if not os.path.exists(datadir): os.mkdir(datadir)
-    #datadir = os.getcwd()
-    _, cif_file = tempfile.mkstemp(suffix='.cif', dir=datadir, text=True)
-    structure.to(fmt="cif", filename=cif_file)
+    _, mypath = tempfile.mkstemp(suffix=ext, dir=datadir, text=text)
+    return mypath
+
+
+def nbjsmol_display(data, text=True, ext=None, width=500, height=500, color="black",
+                    spin="false", debug="false"):
+    if ext is None:
+        # Assume data is path
+        root, ext = os.path.splitext(data)
+        mypath = _get_tmpfile(ext, text=text)
+        copyfile(data, mypath)
+    else:
+        # Assume data is string with structure.
+        if ext is None:
+            raise ValueError("ext must be provided when the structure is passed through a string.")
+        mypath = _get_tmpfile(ext, text=text)
+        with open(mypath, "w") as fh:
+            fh.write(data)
 
     # Dictionary used in template string.
     opts = dict(
-        cif_file=os.path.relpath(cif_file),
-        jmolapp_id="jmolapp_id%d" % _jmolapp_nums[-1],
+        jsmolapp_id="jsmolapp_id%d" % int(uuid.uuid4()),
+        mypath=os.path.relpath(mypath),
+        width=width,
+        height=height,
+        color=color,
+        spin=spin,
+        debug=debug,
     )
-    #print(opts)
-
-    #<script type="text/javascript" src="//file/local/jmol/jsmol/JSmol.min.js"></script>
-    #<script type="text/javascript" src="//file/Users/gmatteo//local/jmol/jsmol/JSmol.min.js"></script>
-    #<script type="text/javascript" src="JSmol.min.js"></script>
     #//<script type="text/javascript" src="jquery/jquery.min.js"></script>
     #//<script type="text/javascript" src="JSmol.lite.nojq.js"></script>
     #//<script type="text/javascript" src="jsmol/JSmol.min.nojq.js"></script>
     #//<script type="text/javascript" src="JSmol.min.nojq.js"></script>
-    javascript = """
-<script type="text/javascript" src="jquery/jquery.min.js"></script>
-<script type="text/javascript" src="nbjsmol/jsmol/JSmol.min.nojq.js"></script>
+    ##//<script type="text/javascript" src="jquery/jquery.min.js"></script>
+
+    html = """
+<div id="%(jsmolapp_id)s" class=jsmolapp_div></div>
+
+<script type="text/javascript" src="nbjsmol/jsmol/JSmol.min.js"></script>
 
 <script type="text/javascript">
-//$(window).ready(function() {
-$("#%(jmolapp_id)s").ready(function() {
+$("#%(jsmolapp_id)s").ready(function() {
 
     Info = {
         antialiasDisplay: true,
         //disableJ2SLoadMonitor: true,
-        width: 500,
-        height: 500,
-        color: "black",
+        width: %(width)d,
+        height: %(height)d,
+        color: "%(color)s",
         //addSelectionOptions: true,
-        serverURL: "mbjsmol/jsmol/php/jsmol.php",
-        script: "load %(cif_file)s;",
-        //src: "%(cif_file)s",
+        serverURL: "nbjsmol/jsmol/php/jsmol.php",
+        script: "load %(mypath)s;",
+        //src: "%(mypath)s",
         use: "HTML5",
-        j2sPath: "jsmol/j2s",          // only used in the HTML5 modality
+        j2sPath: "nbjsmol/jsmol/j2s",  // only used in the HTML5 modality
         //readyFunction: null,
-        //defaultModel: ":dopamine", // PubChem -- use $ for NCI
-        bondWidth: 4,
-        zoomScaling: 1.5,
-        pinchScaling: 2.0,
-        mouseDragFactor: 0.5,
-        touchDragFactor: 0.15,
-        multipleBondSpacing: 4,
-        //spin: true,
-        //spinRateX: 0.2,
-        //spinRateY: 0.5,
-        //spinFPS: 20,
+        //bondWidth: 4,
+        //zoomScaling: 1.5,
+        //pinchScaling: 2.0,
+        //mouseDragFactor: 0.5,
+        //touchDragFactor: 0.15,
+        //multipleBondSpacing: 4,
+        spin: %(spin)s,
         //disableInitialConsole: true,
-        debug: false
+        debug: %(debug)s
     },
 
-  //Jmol._document = null;
-  $("#%(jmolapp_id)s").html(Jmol.getAppletHtml("%(jmolapp_id)s", Info));
-  //$("#%(jmolapp_id)s").html(Jmol.getApplet("%(jmolapp_id)s", Info));
+  $("#%(jsmolapp_id)s").html(Jmol.getAppletHtml("%(jsmolapp_id)s", Info));
 });
-
 </script>
+
+<style>
+#%(jsmolapp_id)s {
+    width: 50%%;
+    margin: 0 auto;
+}
+</style>
 """ % opts
 
-    html_code = '<div id="%s"></div>' % opts["jmolapp_id"]
-
-    print(javascript + html_code)
+    if debug == "true": print(html)
     from IPython.display import HTML, display
-    return display(HTML(javascript + html_code))
+    return display(HTML(html))
