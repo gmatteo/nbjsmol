@@ -14,7 +14,7 @@ define([
     }
 
     return {
-        load_jupyter_extension : load_jupyter_extension,
-        load_ipython_extension : load_jupyter_extension
+        "load_jupyter_extension" : load_jupyter_extension,
+        "load_ipython_extension" : load_jupyter_extension
     };
 });

@@ -29,6 +29,10 @@ def nbjsmol_display(data, text=True, ext=None, width=500, height=500, color="bla
         with open(mypath, "w") as fh:
             fh.write(data)
 
+    nbextdir = _link_nbjsmol_dir()
+    if nbextdir is None:
+        print("Cannot find nbjsmok directory to link")
+
     # Dictionary used in template string.
     opts = dict(
         jsmolapp_id="jsmolapp_id%d" % int(uuid.uuid4()),
@@ -44,6 +48,7 @@ def nbjsmol_display(data, text=True, ext=None, width=500, height=500, color="bla
     #//<script type="text/javascript" src="jsmol/JSmol.min.nojq.js"></script>
     #//<script type="text/javascript" src="JSmol.min.nojq.js"></script>
     ##//<script type="text/javascript" src="jquery/jquery.min.js"></script>
+    #//<script type="text/javascript" src="nbjsmol/jsmol/JSmol.min.js"></script>
 
     html = """
 <div id="%(jsmolapp_id)s" class=jsmolapp_div></div>
@@ -73,7 +78,8 @@ $("#%(jsmolapp_id)s").ready(function() {
         //touchDragFactor: 0.15,
         //multipleBondSpacing: 4,
         spin: %(spin)s,
-        //disableInitialConsole: true,
+        disableInitialConsole: true,
+        disableJ2SLoadMonitor: true,
         debug: %(debug)s
     },
 
@@ -92,3 +98,30 @@ $("#%(jsmolapp_id)s").ready(function() {
     if debug == "true": print(html)
     from IPython.display import HTML, display
     return display(HTML(html))
+
+
+def _link_nbjsmol_dir():
+    from notebook import _nbextension_dirs
+    for d in _nbextension_dirs():
+        dirpath = os.path.join(d, "nbjsmol")
+        if os.path.exists(dirpath) and os.path.isdir(dirpath):
+            print("found nbjsmok in:", dirpath)
+            if not os.path.exists("nbjsmol"):
+                os.symlink("nbjsmol", dirpath, target_is_directory=True)
+            return dirpath
+    return None
+
+
+# Jupyter Extension points
+#def _jupyter_nbextension_paths():
+#    return [dict(
+#        section="notebook",
+#        # the path is relative to the `my_fancy_module` directory
+#        src="static",
+#        # directory in the `nbextension/` namespace
+#        dest="my_fancy_module",
+#        # _also_ in the `nbextension/` namespace
+#        require="my_fancy_module/index")]
+#
+#def load_jupyter_server_extension(nbapp):
+#    nbapp.log.info("my module enabled!")
