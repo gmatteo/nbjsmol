@@ -101,13 +101,13 @@ $("#%(jsmolapp_id)s").ready(function() {
 
 
 def _link_nbjsmol_dir():
-    from notebook import _nbextension_dirs
+    from notebook.nbextensions import _nbextension_dirs
     for d in _nbextension_dirs():
         dirpath = os.path.join(d, "nbjsmol")
         if os.path.exists(dirpath) and os.path.isdir(dirpath):
-            print("found nbjsmok in:", dirpath)
+            #print("Found nbjsmol notebook extension in drectory:", dirpath)
             if not os.path.exists("nbjsmol"):
-                os.symlink("nbjsmol", dirpath, target_is_directory=True)
+                os.symlink(dirpath, "nbjsmol")
             return dirpath
     return None
 
