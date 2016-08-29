@@ -8,14 +8,54 @@ import uuid
 from shutil import copyfile
 
 def _get_tmpfile(ext, text=True):
+    """
+    Return a temporary file with extension `ext`. The file is located inside the
+    `ipynb_jsmoldata` directory created in the current working directory.
+    This trick is needed due to the policy used by browsers to load local files.
+    """
     datadir = os.path.join(os.getcwd(), "ipynb_jsmoldata")
     if not os.path.exists(datadir): os.mkdir(datadir)
     _, mypath = tempfile.mkstemp(suffix=ext, dir=datadir, text=text)
     return mypath
 
 
-def nbjsmol_display(data, text=True, ext=None, width=500, height=500, color="black",
-                    spin="false", debug="false"):
+def _link_nbjsmol_dir():
+    """
+    Create a symbolic link in the cwd() pointing to the directory with the notebook extensions.
+    This trick is needed due to the policy used by browsers to load local files.
+    """
+    from notebook.nbextensions import _nbextension_dirs
+    for d in _nbextension_dirs():
+        dirpath = os.path.join(d, "nbjsmol")
+        if os.path.exists(dirpath) and os.path.isdir(dirpath):
+            #print("Found nbjsmol notebook extension in drectory:", dirpath)
+            if not os.path.exists("nbjsmol"):
+                os.symlink(dirpath, "nbjsmol")
+            return dirpath
+    return None
+
+
+def nbjsmol_display(data, ext=None, width=500, height=500, color="black",
+                    spin="false", debug="false", text=True, html=False):
+    """
+    Display a structure in the jupyter notebook. `data` is either a file with geometrical
+    information in one of the formats supported by jsmol (detected from the file extenion) or a string.
+
+    Args:
+        data: Filename or string with geometrical information.
+
+        ext:
+        width:
+        height:
+        color:
+        spin:
+        debug:
+        text:
+        html:
+
+    Returns:
+        html string if `html` is set to True.
+    """
     if ext is None:
         # Assume data is path
         root, ext = os.path.splitext(data)
@@ -31,7 +71,7 @@ def nbjsmol_display(data, text=True, ext=None, width=500, height=500, color="bla
 
     nbextdir = _link_nbjsmol_dir()
     if nbextdir is None:
-        print("Cannot find nbjsmok directory to link")
+        print("Cannot find nbjsmol directory to link")
 
     # Dictionary used in template string.
     opts = dict(
@@ -44,11 +84,7 @@ def nbjsmol_display(data, text=True, ext=None, width=500, height=500, color="bla
         debug=debug,
     )
     #//<script type="text/javascript" src="jquery/jquery.min.js"></script>
-    #//<script type="text/javascript" src="JSmol.lite.nojq.js"></script>
     #//<script type="text/javascript" src="jsmol/JSmol.min.nojq.js"></script>
-    #//<script type="text/javascript" src="JSmol.min.nojq.js"></script>
-    ##//<script type="text/javascript" src="jquery/jquery.min.js"></script>
-    #//<script type="text/javascript" src="nbjsmol/jsmol/JSmol.min.js"></script>
 
     html = """
 <div id="%(jsmolapp_id)s" class=jsmolapp_div></div>
@@ -72,10 +108,7 @@ $("#%(jsmolapp_id)s").ready(function() {
         j2sPath: "nbjsmol/jsmol/j2s",  // only used in the HTML5 modality
         //readyFunction: null,
         //bondWidth: 4,
-        //zoomScaling: 1.5,
         //pinchScaling: 2.0,
-        //mouseDragFactor: 0.5,
-        //touchDragFactor: 0.15,
         //multipleBondSpacing: 4,
         spin: %(spin)s,
         disableInitialConsole: true,
@@ -96,20 +129,9 @@ $("#%(jsmolapp_id)s").ready(function() {
 """ % opts
 
     if debug == "true": print(html)
+    if html: return html
     from IPython.display import HTML, display
     return display(HTML(html))
-
-
-def _link_nbjsmol_dir():
-    from notebook.nbextensions import _nbextension_dirs
-    for d in _nbextension_dirs():
-        dirpath = os.path.join(d, "nbjsmol")
-        if os.path.exists(dirpath) and os.path.isdir(dirpath):
-            #print("Found nbjsmol notebook extension in drectory:", dirpath)
-            if not os.path.exists("nbjsmol"):
-                os.symlink(dirpath, "nbjsmol")
-            return dirpath
-    return None
 
 
 # Jupyter Extension points
