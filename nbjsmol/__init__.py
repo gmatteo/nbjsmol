@@ -24,8 +24,11 @@ def _link_nbjsmol_dir():
     Create a symbolic link in the cwd() pointing to the directory with the notebook extensions.
     This trick is needed due to the policy used by browsers to load local files.
     """
-    from notebook.nbextensions import _nbextension_dirs
-    for d in _nbextension_dirs():
+    try: 
+        from notebook.nbextensions import _nbextension_dirs as get_nbextension_dirs
+    except ImportError:
+        from notebook.nbextensions import _get_nbextension_dir as get_nbextension_dirs
+    for d in get_nbextension_dirs():
         dirpath = os.path.join(d, "nbjsmol")
         if os.path.exists(dirpath) and os.path.isdir(dirpath):
             #print("Found nbjsmol notebook extension in drectory:", dirpath)
