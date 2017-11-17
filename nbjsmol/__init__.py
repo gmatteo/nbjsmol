@@ -39,7 +39,7 @@ def nbjsmol_display(data, ext=None, width=500, height=500, color="black",
                     spin="false", debug="false", text=True, html=False):
     """
     Display a structure in the jupyter notebook. `data` is either a file with geometrical
-    information in one of the formats supported by jsmol (detected from the file extenion) or a string.
+    information in one of the formats supported by jsmol (detected from the file extension) or a string.
 
     Args:
         data: Filename or string with geometrical information.
